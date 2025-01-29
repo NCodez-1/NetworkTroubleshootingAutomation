@@ -28,11 +28,11 @@ log = structlog.get_logger()
 
 cisco_device = {
     'device_type': 'cisco_ios',
-    'host': '192.168.0.100',
-    'username': 'admin',
-    'password': 'cisco',
+    'host': '############',
+    'username': '#####',
+    'password': '######',
     'port': 22,
-    'secret': 'cisco'}
+    'secret': '######'}
 
 
 def check_interfaces():
