@@ -9,8 +9,7 @@ import structlog
 import logging
 import os
 
-project_dir = "/Desktop/NetworkTroubleshootingAutomation"
-log_file_path = "/Desktop/NetworkTroubleshootingAutomation/NetworkLogs.json"
+log_file_path = "NetworkLogs.json"
 
 logging.getLogger("paramiko").setLevel(logging.WARNING)
 logging.getLogger("netmiko").setLevel(logging.WARNING)
@@ -40,6 +39,12 @@ cisco_device = {
     'password': 'cisco',
     'port': '22',
     'secret': 'cisco'}
+
+
+devices = {
+    "Entries: []"
+}
+
 
 
 def check_interfaces():
@@ -103,7 +108,7 @@ def log_interface():
 def Logs(number):
 
     files = [
-        file for file in os.listdir(project_dir)
+        file for file in os.listdir("NetworkTroubleshooitngAutomation")
         if file.endswith('.json')
     ]
     print("Log file:", files)
@@ -123,9 +128,19 @@ def Logs(number):
 
 def Add_Devices():
 
-    host = input(Fore.GREEN + "Enter host address")
-    username = input(Fore.GREEN + "Enter username")
-    password = input(Fore.GREEN + "Enter password")
+    host = input(Fore.GREEN + "Enter host address: ")
+    username = input(Fore.GREEN + "Enter username: ")
+    password = input(Fore.GREEN + "Enter password: ")
+    secret = input(Fore.GREEN + "Enter secret: ")
+
+    new_device = {
+        "Device type": "Cisco_ios",
+        "host": host,
+        "username": username,
+        "password": password,
+        "secret": secret
+
+    }
 
 
 Add_Devices()
