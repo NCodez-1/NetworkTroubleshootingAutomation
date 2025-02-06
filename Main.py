@@ -54,6 +54,7 @@ def mainMenu():
             continue
 
         elif option == 3:
+            cisco_device = select_device()
             print(Fore.GREEN + "Running automated tasks")
             print(Fore.RED + "Press ctrl+ to stop" + Style.RESET_ALL)
             print(f"[{datetime.now}] Connected to {cisco_device['host']}")
@@ -61,13 +62,13 @@ def mainMenu():
             try:
                 while True:
                     print(Fore.GREEN + "-" * 100 + Style.RESET_ALL)
-                    check_interfaces()
-                    print(Fore.BLUE + "-" * 100 + Style.RESET_ALL)
+                    check_interfaces(cisco_device)
+                    print(Fore.GREEN + "-" * 100 + Style.RESET_ALL)
                     print(f"Waiting 5 seconds before next task")
-                    print(Fore.BLUE + "-" * 100 + Style.RESET_ALL)
+                    print(Fore.GREEN + "-" * 100 + Style.RESET_ALL)
                     time.sleep(5)
-                    show_vlan_brief()
-                    print(Fore.BLUE + "-" * 100 + Style.RESET_ALL)
+                    show_vlan_brief(cisco_device)
+                    print(Fore.GREEN + "-" * 100 + Style.RESET_ALL)
                     time.sleep(5)
 
 
@@ -82,14 +83,8 @@ def mainMenu():
         elif option == 5:
             lineCount = int(input("Choose number of lines to sample from file: " + Style.RESET_ALL))
             logs(lineCount)
-            option = input("Return to main or exit (M or E): ")
-            if option == ('m' or 'M'):
-                mainMenu()
-            else:
-                option == ('e' or 'E')
-                print(Fore.GREEN + f.renderText("Exiting"))
-                quit()
-
+            option = input(Fore.GREEN + "\nPress Enter to return to the menu...")
+            
         elif option == 6:
             print(Fore.GREEN + f.renderText("Exiting"))
             quit()
@@ -99,5 +94,4 @@ def mainMenu():
 
 if __name__ == "__main__":
     mainMenu()
-
 
