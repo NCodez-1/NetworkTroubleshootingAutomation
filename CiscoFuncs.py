@@ -11,6 +11,7 @@ import os
 
 log_file_path = "NetworkLogs.json"
 
+
 logging.getLogger("paramiko").setLevel(logging.WARNING)
 logging.getLogger("netmiko").setLevel(logging.WARNING)
 
@@ -41,13 +42,26 @@ cisco_device = {
     'secret': 'cisco'}
 
 
-devices = {
-    "Entries: []"
-}
+def list_devices():
+    file = "Devices.json"
+
+    print(Fore.GREEN + "List of devices on the network:")
+
+    try:
+        with open(file, 'r') as devices:
+            data = json.load(devices)  
+            for device_name, device_info in data.items():  
+                ip_address = device_info.get("host", "Unknown") 
+                print(Fore.GREEN + f"{device_name} - {ip_address}")  
+    except json.JSONDecodeError as e:
+        print(Fore.RED + f"Error decoding JSON: {e}")
+    except FileNotFoundError:
+        print(Fore.RED + "Error: Devices.json not found.")
 
 
 
 def check_interfaces():
+
     try:
         connection = ConnectHandler(**cisco_device)
         if 'secret' in cisco_device:
@@ -105,15 +119,9 @@ def log_interface():
     print(f"Logs saved to: {log_file_path}")
 
 
-def Logs(number):
+def logs(number):
 
-    files = [
-        file for file in os.listdir("NetworkTroubleshooitngAutomation")
-        if file.endswith('.json')
-    ]
-    print("Log file:", files)
-
-    file = 'NetworkLogs.json'
+    file = "NetworkLogs.json"
 
     with open(file, 'r') as log:
         last_lines = deque(log, maxlen=number)
@@ -126,21 +134,34 @@ def Logs(number):
             print(f"Error decoding JSON: {e}")
 
 
-def Add_Devices():
+def add_devices():
+
+    json_file = "Devices.json"
 
     host = input(Fore.GREEN + "Enter host address: ")
     username = input(Fore.GREEN + "Enter username: ")
     password = input(Fore.GREEN + "Enter password: ")
     secret = input(Fore.GREEN + "Enter secret: ")
-
+    device_name = input(Fore.GREEN + "Enter the device name: ")
+    
     new_device = {
-        "Device type": "Cisco_ios",
+        "device_type": "cisco_ios",
         "host": host,
         "username": username,
         "password": password,
+        "port": "22",
         "secret": secret
-
     }
+    
+    try:
+        with open(json_file, "r") as file:
+            devices = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        devices = {}
 
+    devices[device_name] = new_device
 
-Add_Devices()
+    with open(json_file, "w") as file:
+        json.dump(devices, file, indent=4)
+
+    print(Fore.GREEN + f"Device {device_name} added")
