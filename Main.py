@@ -6,29 +6,56 @@ from colorama import Fore, Style
 
 
 def mainMenu():
+
     while True:
+
         f = Figlet(font='slant')
+
         print(Fore.GREEN + f.renderText("COM 617") + Style.RESET_ALL)
         print("Cisco Industrial consultancy project for COM617")
         print("This project aims to automatically and remotely troubleshoot Cisco network devices")
         print("The goals for this program is to remotely access a chosen device, run troubleshooting commands and "
               "raise any errors detected and process these as logs which can be passed through the ELK stack "
               "for visualization")
+        
         print(Fore.BLUE + "-" * 50)
         print(Fore.GREEN + " Main Menu")
         print(Fore.BLUE + "-" * 50)
-        print(Fore.GREEN + " Run automated scans               [1]")
+        print(Fore.GREEN + " Add a device                      [1]")
         print(Fore.BLUE + "-" * 50)
-        print(Fore.GREEN + " Select an interface to check      [2]")
+        print(Fore.GREEN + " View devices                      [2]")
         print(Fore.BLUE + "-" * 50)
-        print(Fore.GREEN + " View log file contents            [3]")
+        print(Fore.GREEN + " Run automated scans               [3]")
         print(Fore.BLUE + "-" * 50)
-        print(Fore.GREEN + " Exit                              [4]")
+        print(Fore.GREEN + " Select an interface to check      [4]")
+        print(Fore.BLUE + "-" * 50)
+        print(Fore.GREEN + " View log file contents            [5]")
+        print(Fore.BLUE + "-" * 50)
+        print(Fore.GREEN + " Exit                              [6]")
         print(Fore.BLUE + "-" * 50)
 
         option = int(input(Fore.GREEN + " Choose an option: "))
+
         if option == 1:
+            while True:
+                add_devices()
+                another = input(Fore.GREEN + "Add another device? 'Y', 'N' ").strip().lower()
+
+                if another == 'y':
+                    continue
+                elif another == 'n':
+                    break
+                else:
+                    print(Fore.RED + "Invalid option. Please enter 'Y' or 'N'.")
+
+        elif option == 2:
+            list_devices()
+            input(Fore.GREEN + "\nPress Enter to return to the menu...")
+            continue
+
+        elif option == 3:
             print(Fore.GREEN + "Running automated tasks")
+            print(Fore.RED + "Press ctrl+ to stop" + Style.RESET_ALL)
             print(f"[{datetime.now}] Connected to {cisco_device['host']}")
 
             try:
@@ -42,26 +69,19 @@ def mainMenu():
                     show_vlan_brief()
                     print(Fore.BLUE + "-" * 100 + Style.RESET_ALL)
                     time.sleep(5)
-                    """ 
-                    This function would normally have a Ctrl+C to stop the running tasks but since that doesnt work in Pycharms terminal
-                    Ive added in a type exit to stop instead, In the final program this will be removed
-                    """
-                    user_input = input("Type 'exit' to stop: ").strip().lower()
-                    if user_input == "exit":
-                        print(Fore.RED + "Exiting automated tasks..." + Style.RESET_ALL)
-                        break
+
 
             except KeyboardInterrupt:
                 print(Fore.GREEN + "\nExiting tasks" + Style.RESET_ALL)
-            mainMenu()
+            continue
 
-        elif option == 2:
+        elif option == 4:
             log_interface()
-            mainMenu()
+            continue
 
-        elif option == 3:
+        elif option == 5:
             lineCount = int(input("Choose number of lines to sample from file: " + Style.RESET_ALL))
-            Logs(lineCount)
+            logs(lineCount)
             option = input("Return to main or exit (M or E): ")
             if option == ('m' or 'M'):
                 mainMenu()
@@ -70,7 +90,7 @@ def mainMenu():
                 print(Fore.GREEN + f.renderText("Exiting"))
                 quit()
 
-        elif option == 4:
+        elif option == 6:
             print(Fore.GREEN + f.renderText("Exiting"))
             quit()
         else:
@@ -79,4 +99,5 @@ def mainMenu():
 
 if __name__ == "__main__":
     mainMenu()
+
 
