@@ -76,15 +76,16 @@ def mainMenu():
                 print(Fore.GREEN + "\nExiting tasks" + Style.RESET_ALL)
             continue
 
-        elif option == 4:
-            log_interface()
+       elif option == 4:
+            cisco_device = select_device()
+            log_interface(cisco_device)
             continue
 
         elif option == 5:
             lineCount = int(input("Choose number of lines to sample from file: " + Style.RESET_ALL))
             logs(lineCount)
             option = input(Fore.GREEN + "\nPress Enter to return to the menu...")
-            
+
         elif option == 6:
             print(Fore.GREEN + f.renderText("Exiting"))
             quit()
@@ -94,4 +95,5 @@ def mainMenu():
 
 if __name__ == "__main__":
     mainMenu()
+
 
