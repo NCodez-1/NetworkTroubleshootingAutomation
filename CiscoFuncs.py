@@ -4,13 +4,13 @@ import json
 from netmiko import ConnectHandler
 from datetime import datetime
 import time
-from colorama import Fore, Style
+from colorama import Fore, Style, init
 import structlog
 import logging
 import os
 
 log_file_path = "NetworkLogs.json"
-
+init(autoreset=True)
 
 logging.getLogger("paramiko").setLevel(logging.WARNING)
 logging.getLogger("netmiko").setLevel(logging.WARNING)
@@ -33,14 +33,6 @@ structlog.configure(
 
 log = structlog.get_logger()
 
-cisco_device = {
-    'device_type': 'cisco_ios',
-    'host': '192.168.0.100',
-    'username': 'admin',
-    'password': 'cisco',
-    'port': '22',
-    'secret': 'cisco'}
-
 
 def list_devices():
     file = "Devices.json"
@@ -59,8 +51,40 @@ def list_devices():
         print(Fore.RED + "Error: Devices.json not found.")
 
 
+def load_devices():
+    file = "Devices.json"
+    try:
+        with open(file, 'r') as devices:
+            return json.load(devices) 
+    except (json.JSONDecodeError, FileNotFoundError) as e:
+        print(Fore.RED + f"Error loading devices: {e}")
+        return {}
+    
 
-def check_interfaces():
+def select_device():
+    devices = load_devices()
+    if not devices:
+        print(Fore.RED + "No devices found.")
+        return
+
+    print(Fore.GREEN + "Available devices:")
+    for index, device in enumerate(devices.keys(), start=1):
+        print(Fore.YELLOW + f"{index}. {device}")
+
+    while True:
+        try:
+            choice = int(input(Fore.GREEN + "Select a device (number): "))
+            selected_device = list(devices.keys())[choice - 1]  
+            break  
+        except (ValueError, IndexError):
+            print(Fore.RED + "Invalid selection. Please enter a valid number.")
+
+    cisco_device = devices[selected_device]
+    return cisco_device
+
+
+def check_interfaces(cisco_device):
+    
 
     try:
         connection = ConnectHandler(**cisco_device)
@@ -75,7 +99,7 @@ def check_interfaces():
         print(f"Error {e}")
 
 
-def show_vlan_brief():
+def show_vlan_brief(cisco_device):
     try:
         connection = ConnectHandler(**cisco_device)
         if 'secret' in cisco_device:
@@ -88,7 +112,7 @@ def show_vlan_brief():
         print(f"Error {e}")
 
 
-def log_interface():
+def log_interface(cisco_device):
     if_name = input("Select an interface to check: ")
 
     try:
@@ -165,3 +189,4 @@ def add_devices():
         json.dump(devices, file, indent=4)
 
     print(Fore.GREEN + f"Device {device_name} added")
+
