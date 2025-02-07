@@ -9,12 +9,17 @@ import structlog
 import logging
 import os
 
+#folder locations in directory
 log_file_path = "NetworkLogs.json"
+
+#resets text color after each line
 init(autoreset=True)
 
+#get log information net netmiko
 logging.getLogger("paramiko").setLevel(logging.WARNING)
 logging.getLogger("netmiko").setLevel(logging.WARNING)
 
+#formatr for the log to created
 logging.basicConfig(
     filename=log_file_path,
     level=logging.INFO,
@@ -22,6 +27,7 @@ logging.basicConfig(
     filemode="a",
 )
 
+#structure of the log data in json
 structlog.configure(
     processors=[
         structlog.processors.TimeStamper(fmt="iso"),
@@ -31,9 +37,11 @@ structlog.configure(
     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
 )
 
+#creates variable for the logs
 log = structlog.get_logger()
 
 
+#creates a list of all devices on the network and their address
 def list_devices():
     file = "Devices.json"
 
@@ -51,6 +59,7 @@ def list_devices():
         print(Fore.RED + "Error: Devices.json not found.")
 
 
+#simular function to be called within the next
 def load_devices():
     file = "Devices.json"
     try:
@@ -61,6 +70,7 @@ def load_devices():
         return {}
     
 
+choose what device to connect to from the list of availability and saves the chosen device and it's log in details
 def select_device():
     devices = load_devices()
     if not devices:
@@ -83,6 +93,7 @@ def select_device():
     return cisco_device
 
 
+#SSH into the chosen device and shows interface brief
 def check_interfaces(cisco_device):
     
 
@@ -98,7 +109,7 @@ def check_interfaces(cisco_device):
     except Exception as e:
         print(f"Error {e}")
 
-
+#SSH into device and shows vlan brief 
 def show_vlan_brief(cisco_device):
     try:
         connection = ConnectHandler(**cisco_device)
@@ -111,7 +122,7 @@ def show_vlan_brief(cisco_device):
     except Exception as e:
         print(f"Error {e}")
 
-
+#selects an interface and creates a log based on returned details
 def log_interface(cisco_device):
     if_name = input("Select an interface to check: ")
 
@@ -142,7 +153,7 @@ def log_interface(cisco_device):
 
     print(f"Logs saved to: {log_file_path}")
 
-
+#prints content of the network logs
 def logs(number):
 
     file = "NetworkLogs.json"
@@ -157,7 +168,7 @@ def logs(number):
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
 
-
+#adds new network devices to the program for SSH connection 
 def add_devices():
 
     json_file = "Devices.json"
