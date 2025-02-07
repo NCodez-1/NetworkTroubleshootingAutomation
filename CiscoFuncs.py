@@ -19,7 +19,7 @@ init(autoreset=True)
 logging.getLogger("paramiko").setLevel(logging.WARNING)
 logging.getLogger("netmiko").setLevel(logging.WARNING)
 
-#formatr for the log to created
+#format for the log to created
 logging.basicConfig(
     filename=log_file_path,
     level=logging.INFO,
@@ -70,7 +70,7 @@ def load_devices():
         return {}
     
 
-choose what device to connect to from the list of availability and saves the chosen device and it's log in details
+#choose what device to connect to from the list of availability and saves the chosen device and it's log in details
 def select_device():
     devices = load_devices()
     if not devices:
