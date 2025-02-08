@@ -70,7 +70,9 @@ def load_devices():
         return {}
     
 
-#choose what device to connect to from the list of availability and saves the chosen device and it's log in details
+"" When multiply network devices have been added to the topology this allows specific devies to be chosen to SSH into and run 
+    troubleshooting commands. for automated purposes this can be added into a script which chooses devices automatically ""
+    
 def select_device():
     devices = load_devices()
     if not devices:
@@ -122,7 +124,10 @@ def show_vlan_brief(cisco_device):
     except Exception as e:
         print(f"Error {e}")
 
-#selects an interface and creates a log based on returned details
+"" This allows the returned information from the command to log the results as it comes from the terminal
+    it checks for strings in the returned output to log if the interface is up or down and uses the logging
+    structure from the beggining of the program to return it in a JSON file "" 
+    
 def log_interface(cisco_device):
     if_name = input("Select an interface to check: ")
 
@@ -168,7 +173,11 @@ def logs(number):
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
 
-#adds new network devices to the program for SSH connection 
+"" To be able to SSH into devices on the network to run cisco commands and check their status each device needs its credentials
+    in the program so it can automatically access them, ths function simplifies having to hard code in each device
+    in the network topology and then formats the credentials into a JSON file which the program can extract
+    the details needed to access the device "" 
+    
 def add_devices():
 
     json_file = "Devices.json"
