@@ -35,7 +35,8 @@ def mainMenu():
         print(Fore.BLUE + "-" * 50)
 
         option = int(input(Fore.GREEN + " Choose an option: "))
-
+    "" This option allows for each device in the network topology to be added to the program to allow remote access ""
+    
         if option == 1:
             while True:
                 add_devices()
@@ -47,12 +48,16 @@ def mainMenu():
                     break
                 else:
                     print(Fore.RED + "Invalid option. Please enter 'Y' or 'N'.")
-
+                    
+    # This gives an overview of all devices in the topology and the address they are at
+    
         elif option == 2:
             list_devices()
             input(Fore.GREEN + "\nPress Enter to return to the menu...")
             continue
-
+            
+    # selects a device to SSH int and runs a set of automated commands
+    
         elif option == 3:
             cisco_device = select_device()
             print(Fore.GREEN + "Running automated tasks")
@@ -75,11 +80,15 @@ def mainMenu():
             except KeyboardInterrupt:
                 print(Fore.GREEN + "\nExiting tasks" + Style.RESET_ALL)
             continue
-
+"" This is an example function of being able to remotley access a device, check the status of it, here its interface status and then 
+    returns the relevant information as a JSON log "" 
+    
        elif option == 4:
             cisco_device = select_device()
             log_interface(cisco_device)
             continue
+            
+# Thsi just prints out a number of lines of the saved log file
 
         elif option == 5:
             lineCount = int(input("Choose number of lines to sample from file: " + Style.RESET_ALL))
