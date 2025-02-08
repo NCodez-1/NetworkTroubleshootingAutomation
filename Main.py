@@ -4,7 +4,7 @@ from datetime import datetime
 import time
 from colorama import Fore, Style
 
-"" This is a protoype of a program which can remotley access network devices and run troublehshooting
+""" This is a protoype of a program which can remotley access network devices and run troublehshooting
     commands, it is currently just the set up for data collection adn example of what can be done,
     current feautres allows inputting network deivces in the topology so they can be remotley accesses
     logs a example of a interface check and allows viewing content of the log file. 
@@ -14,7 +14,7 @@ from colorama import Fore, Style
 
     Once the network topology is set up this can be scritped to run in the back ground checking certain commands
     and returning errors to the visual dashboard and then further intergrated with playbooks that work to fix 
-    issues if can be done remotley "" 
+    issues if can be done remotley """
 
 
 def mainMenu():
@@ -47,7 +47,8 @@ def mainMenu():
         print(Fore.BLUE + "-" * 50)
 
         option = int(input(Fore.GREEN + " Choose an option: "))
-    "" This option allows for each device in the network topology to be added to the program to allow remote access ""
+        
+    """ This option allows for each device in the network topology to be added to the program to allow remote access """
     
         if option == 1:
             while True:
@@ -92,8 +93,8 @@ def mainMenu():
             except KeyboardInterrupt:
                 print(Fore.GREEN + "\nExiting tasks" + Style.RESET_ALL)
             continue
-"" This is an example function of being able to remotley access a device, check the status of it, here its interface status and then 
-    returns the relevant information as a JSON log "" 
+""" This is an example function of being able to remotley access a device, check the status of it, here its interface status and then 
+    returns the relevant information as a JSON log """
     
        elif option == 4:
             cisco_device = select_device()
