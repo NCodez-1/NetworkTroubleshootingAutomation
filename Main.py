@@ -4,6 +4,18 @@ from datetime import datetime
 import time
 from colorama import Fore, Style
 
+"" This is a protoype of a program which can remotley access network devices and run troublehshooting
+    commands, it is currently just the set up for data collection adn example of what can be done,
+    current feautres allows inputting network deivces in the topology so they can be remotley accesses
+    logs a example of a interface check and allows viewing content of the log file. 
+
+    for the next stages the log format to be sent to the ELK stack will need to be intergrated with this    
+    to be able to create custom logs based on the outcome of the device commands.
+
+    Once the network topology is set up this can be scritped to run in the back ground checking certain commands
+    and returning errors to the visual dashboard and then further intergrated with playbooks that work to fix 
+    issues if can be done remotley "" 
+
 
 def mainMenu():
 
