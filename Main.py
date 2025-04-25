@@ -19,6 +19,22 @@ from colorama import Fore, Style
 
 def mainMenu():
 
+    f = Figlet(font='slant')
+
+    print(Fore.GREEN + f.renderText("COM 617") + Style.RESET_ALL)
+    print("Cisco Industrial consultancy project for COM617")
+    print("This project aims to automatically and remotely troubleshoot Cisco network devices")
+    print("The goals for this program is to remotely access a chosen device, run troubleshooting commands and "
+            "raise any errors detected and process these as logs which can be passed through the ELK stack "
+            "for visualization")
+       
+    print(Fore.GREEN + "Add your Cisco Webex Token:")
+    print(Fore.BLUE + "-" * 50)
+
+    token = str(input())
+    while len(token) < 10:
+        token = str(input())
+
     while True:
 
         f = Figlet(font='slant')
@@ -117,6 +133,7 @@ def mainMenu():
         elif option == 7:
             print(Fore.GREEN + f.renderText("Exiting"))
             quit()
+            
         else:
             print("Choose an option")
 
