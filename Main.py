@@ -43,12 +43,14 @@ def mainMenu():
         print(Fore.BLUE + "-" * 50)
         print(Fore.GREEN + " View log file contents            [5]")
         print(Fore.BLUE + "-" * 50)
-        print(Fore.GREEN + " Exit                              [6]")
+        print(Fore.GREEN + " Add rule with AI                  [6]")
+        print(Fore.BLUE + "-" * 50)
+        print(Fore.GREEN + " Exit                              [7]")
         print(Fore.BLUE + "-" * 50)
 
         option = int(input(Fore.GREEN + " Choose an option: "))
         
-    """ This option allows for each device in the network topology to be added to the program to allow remote access """
+        """ This option allows for each device in the network topology to be added to the program to allow remote access """
     
         if option == 1:
             while True:
@@ -93,10 +95,11 @@ def mainMenu():
             except KeyboardInterrupt:
                 print(Fore.GREEN + "\nExiting tasks" + Style.RESET_ALL)
             continue
-""" This is an example function of being able to remotley access a device, check the status of it, here its interface status and then 
-    returns the relevant information as a JSON log """
+            
+            """ This is an example function of being able to remotley access a device, check the status of it, here its interface status and then 
+            returns the relevant information as a JSON log """
     
-       elif option == 4:
+        elif option == 4:
             cisco_device = select_device()
             log_interface(cisco_device)
             continue
@@ -109,6 +112,9 @@ def mainMenu():
             option = input(Fore.GREEN + "\nPress Enter to return to the menu...")
 
         elif option == 6:
+            ai_prompt()            
+
+        elif option == 7:
             print(Fore.GREEN + f.renderText("Exiting"))
             quit()
         else:
@@ -117,5 +123,3 @@ def mainMenu():
 
 if __name__ == "__main__":
     mainMenu()
-
-

@@ -8,6 +8,58 @@ from colorama import Fore, Style, init
 import structlog
 import logging
 import os
+import openai
+
+def ai_prompt():
+    api_key = ""
+    base_url = "https://api.aimlapi.com/v1"
+    model = "gpt-4o"
+
+    client = openai.OpenAI(api_key=api_key, base_url=base_url)
+
+    user_input = input("Enter your Rule: ")
+
+    full_prompt = """
+        {
+            "instructions": "You are an AI assistant that generates Python log filtering rules. You must ONLY output a single Python line in this format:\n\nrulebook.add_rule(lambda log: ...)\n\nUse the user's request to build the rule. Do NOT include explanations, summaries, JSON, or anything else. Just return the Python line that fulfills the request below.",
+
+
+
+            "example_log": {
+                "timestamp": "2025-04-25T09:20:11Z",
+                "device_name": "edge-router-02",
+                "severity": "CRITICAL",
+                "event": "BGP_PEER_DOWN",
+                "status": "down",
+                "message": "BGP peer 192.168.200.1 on ASN 65001 went down",
+                "peer_ip": "192.168.200.1",
+                "asn": 65001
+            },
+
+            "example_rule": {
+                "rule_response": "rulebook.add_rule(lambda log: log.get('severity') == 'CRITICAL')"
+            },
+
+            "user_request": {
+                "description": "{user_input}"
+            }
+        }
+        """
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "user", "content": full_prompt}
+            ],
+            temperature=0.7,
+            max_tokens=256,
+        )
+
+        print("AI Response:", response.choices[0].message.content)
+    except Exception as e:
+        print(f"Error communicating with AI API: {e}")
+
+
 
 #folder locations in directory
 log_file_path = "NetworkLogs.json"
