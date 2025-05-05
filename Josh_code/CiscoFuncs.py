@@ -1,19 +1,14 @@
-from collections import deque
-from math import ceil
 import json
 from netmiko import ConnectHandler
-import time
-from colorama import Fore, Style, init
-from elasticsearch import Elasticsearch
-from datetime import datetime, timedelta
+from colorama import Fore , init
+import socket
+import requests
 
-
+#Webex details to send messages via the Webex web bot
+WEBEX_TOKEN = "YmI1YWIxNDAtNTM2NC00NzEwLThlZDEtNjU4NDU2ZThlNGI2NGRkZjFhYzQtM2Vm_PE93_551a1417-a6a5-47bb-8629-f1a6cba62826"
+ROOM_ID = "e0cc9f30-edfd-11ef-8a04-05a7fd281849"
 
 init(autoreset=True)
-
-#sets Elasticsearch host
-es_host = "http://localhost:9200"
-
 
 
 #list all devices in the program eg Switch1, Router1 etc
@@ -104,6 +99,8 @@ def show_vlan_brief(cisco_device):
     except Exception as e:
         print(f"Error {e}")
 
+
+
 """ ------------------------- end of cisco commands for trouble shooting -------------------------"""
 
 
@@ -139,37 +136,31 @@ def add_devices():
 
 
 
-# Querys Elasticsearch for recent logs from specific device chosen 
-def query_recent_logs(es_host, device_ip):
+"""------------------------------------Functions to send logging messages to Webex room------------------------------------"""
 
-    es = Elasticsearch(es_host)
-
-    time.sleep(5)
-
-    now = datetime.utcnow()
-    past = now - timedelta(seconds=15)
-
-    query = {
-        "bool": {
-            "must": [
-                {"match": {"host.ip": device_ip}}, 
-            ],
-            "filter": [
-                {
-                    "range": {
-                        "@timestamp": {
-                            "gte": past.isoformat(),
-                            "lte": now.isoformat()
-                        }
-                    }
-                }
-            ]
-        }
+def send_to_webex(message):
+    url = "https://webexapis.com/v1/messages"
+    headers = {
+        "Authorization": f"Bearer {WEBEX_TOKEN}",
+        "Content-Type": "application/json"
     }
+    data = {
+        "roomId": ROOM_ID,
+        "text": message
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code != 200:
+        print(f"Failed to send message: {response.status_code} {response.text}")
 
-    response = es.search(index="filebeat-*", query=query, size=10)
-    hits = response["hits"]["hits"]
 
-    print(f"\n🔍 Recent logs from {device_ip}:\n")
-    for hit in hits:
-        print(hit["_source"]["message"])
+def start_syslog_server():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind(("0.0.0.0", 9002))
+    print("Listening for syslog messages...")
+    while True:
+        data, addr = sock.recvfrom(4096)
+        message = data.decode()
+        print(f"Received from {addr}: {message}")
+        send_to_webex(message)
+
+"""----------------------------------------------------End of logs----------------------------------------------------"""
