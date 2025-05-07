@@ -10,8 +10,77 @@ import logging
 import os
 import openai
 
-def ai_prompt():
-    api_key = ""
+api_key = ""
+API_KEY_FILE = "api_key.txt"
+
+def load_api_key():
+    global api_key
+    if os.path.exists(API_KEY_FILE):
+        with open(API_KEY_FILE, "r") as f:
+            api_key = f.read().strip()
+
+def save_api_key():
+    with open(API_KEY_FILE, "w") as f:
+        f.write(api_key)
+
+def set_api_key(new_key):
+    global api_key
+    api_key = new_key
+    save_api_key()
+
+def get_api_key():
+    return api_key
+
+def ai_prompt_rule_with_action():
+    base_url = "https://api.aimlapi.com/v1"
+    model = "gpt-4o"
+
+    client = openai.OpenAI(api_key=CiscoFuncs.get_api_key(), base_url=base_url)
+
+    user_input = input("Describe the rule you want to create: ")
+
+    full_prompt = f"""
+        You are an AI assistant that generates Python log filtering rules.
+
+        Only respond with a single line of Python code in the following format:
+        rulebook.add_rule(lambda log: ..., log_analysis.FUNCTION_NAME)
+
+        Do not include explanations, formatting, or any other content.
+
+        Use this sample log to understand the context:
+
+        {{
+        "timestamp": "2025-04-25T09:20:11Z",
+        "device_name": "edge-router-02",
+        "severity": "CRITICAL",
+        "event": "BGP_PEER_DOWN",
+        "status": "down",
+        "message": "BGP peer 192.168.200.1 on ASN 65001 went down",
+        "peer_ip": "192.168.200.1",
+        "asn": 65001
+        }}
+
+    Respond to this user description:
+    \"{user_input}\"
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": full_prompt}],
+            temperature=0.2,
+            max_tokens=150,
+        )
+
+        ai_rule = response.choices[0].message.content.strip()
+
+        print("\nCopy-paste this rule into your trigger list:\n")
+        print(ai_rule)
+
+    except Exception as e:
+        print(f"Error communicating with AI API: {e}")
+
+def ai_prompt_rule():
     base_url = "https://api.aimlapi.com/v1"
     model = "gpt-4o"
 
@@ -262,3 +331,4 @@ def add_devices():
 
     print(Fore.GREEN + f"Device {device_name} added")
 
+load_api_key()
