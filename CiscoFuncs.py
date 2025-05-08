@@ -9,7 +9,7 @@ from colorama import Fore, Style, init
 import structlog
 import logging
 import os
-import log_analysis
+import runbook
 import socket
 import requests
 import openai
@@ -88,9 +88,9 @@ def create_trigger_with_ai():
         print("\nAI-generated condition:")
         print(f"    {condition}")
 
-        print("\nAvailable action functions from log_analysis.py:")
+        print("\nAvailable action functions from runbook.py:")
         actions = [
-            name for name, func in inspect.getmembers(log_analysis, inspect.isfunction)
+            name for name, func in inspect.getmembers(runbook, inspect.isfunction)
             if not name.startswith("_")
         ]
         for i, action in enumerate(actions, 1):

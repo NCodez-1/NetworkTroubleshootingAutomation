@@ -2,3 +2,5 @@ HTTP Request: POST https://api.aimlapi.com/v1/chat/completions "HTTP/1.1 201 Cre
 HTTP Request: POST https://api.aimlapi.com/v1/chat/completions "HTTP/1.1 201 Created"
 HTTP Request: POST https://api.aimlapi.com/v1/chat/completions "HTTP/1.1 201 Created"
 HTTP Request: POST https://api.aimlapi.com/v1/chat/completions "HTTP/1.1 201 Created"
+HTTP Request: POST https://api.aimlapi.com/v1/chat/completions "HTTP/1.1 201 Created"
+HTTP Request: POST https://api.aimlapi.com/v1/chat/completions "HTTP/1.1 201 Created"
