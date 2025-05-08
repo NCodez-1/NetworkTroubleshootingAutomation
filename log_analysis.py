@@ -92,7 +92,7 @@ def load_topology() -> dict:
 ip = mac_to_ip(log_s)
 if not ip:
     switches = load_topology()
-    curr_ip_address = switches['S1']
+    curr_ip_address = switches['switch2']
     while True:
         ssh_connection = netmiko_connection(curr_ip_address)
         if not ssh_connection:
