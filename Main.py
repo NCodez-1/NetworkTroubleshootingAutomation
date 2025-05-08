@@ -9,6 +9,7 @@ from CiscoFuncs import *
 from datetime import datetime
 from log_analysis import json_load
 import time
+import threading
 from colorama import Fore, Style
 
 """ This is a protoype of a program which can remotley access network devices and run troublehshooting
@@ -52,11 +53,13 @@ def mainMenu():
         print(Fore.BLUE + "-" * 50)
         print(Fore.GREEN + " Select an interface to check      [4]")
         print(Fore.BLUE + "-" * 50)
-        print(Fore.GREEN + " View log file contents            [5]")
+        print(Fore.GREEN + " Send syslogs to Webex             [5]")
         print(Fore.BLUE + "-" * 50)
-        print(Fore.GREEN + " AI Menu                           [6]")
+        print(Fore.GREEN + " View log file contents            [6]")
         print(Fore.BLUE + "-" * 50)
-        print(Fore.GREEN + " Log check                         [7]")
+        print(Fore.GREEN + " AI Menu                           [7]")
+        print(Fore.BLUE + "-" * 50)
+        print(Fore.GREEN + " Log check                         [8]")
         print(Fore.BLUE + "-" * 50)
         print(Fore.GREEN + " Exit                             [99]")
         print(Fore.BLUE + "-" * 50)
@@ -87,23 +90,26 @@ def mainMenu():
     # selects a device to SSH int and runs a set of automated commands
     
         elif option == 3:
+            # Start syslog server in a separate thread
+            syslog_thread = threading.Thread(target=start_syslog_server, daemon=True)
+            syslog_thread.start()
+
             cisco_device = select_device()
             print(Fore.GREEN + "Running automated tasks")
-            print(Fore.RED + "Press ctrl+ to stop" + Style.RESET_ALL)
-            print(f"[{datetime.now}] Connected to {cisco_device['host']}")
+            print(Fore.RED + "Press ctrl+c to stop" + Style.RESET_ALL)
+            print(f"[{datetime.now()}] Connected to {cisco_device['host']}")
 
             try:
                 while True:
                     print(Fore.GREEN + "-" * 100 + Style.RESET_ALL)
                     check_interfaces(cisco_device)
                     print(Fore.GREEN + "-" * 100 + Style.RESET_ALL)
-                    print(f"Waiting 5 seconds before next task")
+                    print("Waiting 5 seconds before next task")
                     print(Fore.GREEN + "-" * 100 + Style.RESET_ALL)
                     time.sleep(5)
                     show_vlan_brief(cisco_device)
                     print(Fore.GREEN + "-" * 100 + Style.RESET_ALL)
                     time.sleep(5)
-
 
             except KeyboardInterrupt:
                 print(Fore.GREEN + "\nExiting tasks" + Style.RESET_ALL)
@@ -111,23 +117,25 @@ def mainMenu():
             
             """ This is an example function of being able to remotley access a device, check the status of it, here its interface status and then 
             returns the relevant information as a JSON log """
-    
         elif option == 4:
+            start_syslog_server()
+
+        elif option == 5:
             cisco_device = select_device()
             log_interface(cisco_device)
             continue
             
 # Thsi just prints out a number of lines of the saved log file
 
-        elif option == 5:
+        elif option == 6:
             lineCount = int(input("Choose number of lines to sample from file: " + Style.RESET_ALL))
             logs(lineCount)
             option = input(Fore.GREEN + "\nPress Enter to return to the menu...")
 
-        elif option == 6:
+        elif option == 7:
             AImenu()
 
-        elif option == 7:
+        elif option == 8:
             log_check_menu()
 
         elif option == 99:

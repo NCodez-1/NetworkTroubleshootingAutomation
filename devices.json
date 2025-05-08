@@ -1,25 +1,26 @@
-[
-    {
-        "hostname": "S1",
-        "ip_address": "192.168.0.2",
-        "mac_address": "abcd:efgh:ijkl:mnop",
-        "bridge_priority": "4096"
+{
+    "Device1": {
+        "device_type": "cisco_ios",
+        "host": "192.168.0.100",
+        "username": "admin",
+        "password": "cisco",
+        "port": "22",
+        "secret": "cisco"
     },
-    {
-        "hostname": "S2",
-        "ip_address":"192.168.0.3",
-        "mac_address": "iiii:jjjj:dddd:ssss",
-        "bridge_priority": "32768"
+    "router1": {
+        "device_type": "cisco_ios",
+        "host": "192.168.0.101",
+        "username": "admin",
+        "password": "cisco",
+        "port": "22",
+        "secret": "cisco"
     },
-    {
-        "hostname": "S3",
-        "ip_address":"192.168.0.4",
-        "mac_address": "abcd:efgh:ijkl:mnoa",
-        "bridge_priority": "32768"
-    }, 
-    {
-        "hostname": "R1",
-        "ip_address": "192.168.0.1",
-        "mac_address": "eeee:ffff:gggg:hhhh"
+    "switch2": {
+        "device_type": "cisco_ios",
+        "host": "192.168.0.102",
+        "username": "admin",
+        "password": "cisco",
+        "port": "22",
+        "secret": "cisco"
     }
-]
+}
