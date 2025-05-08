@@ -7,7 +7,7 @@ from pyfiglet import Figlet
 import CiscoFuncs
 from CiscoFuncs import *
 from datetime import datetime
-from log_analysis import json_load
+from runbook import json_load
 import time
 import threading
 from colorama import Fore, Style
@@ -97,7 +97,7 @@ def mainMenu():
             cisco_device = select_device()
             print(Fore.GREEN + "Running automated tasks")
             print(Fore.RED + "Press ctrl+c to stop" + Style.RESET_ALL)
-            print(f"[{datetime.now()}] Connected to {cisco_device['host']}")
+            print(f"[{datetime.now()}] Connected to {cisco_device['ip']}")
 
             try:
                 while True:

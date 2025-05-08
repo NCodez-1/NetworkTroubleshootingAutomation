@@ -2,7 +2,7 @@ import json
 import time
 import os
 import importlib
-import log_analysis
+import runbook
 
 TRIGGER_FILE = "trigger.json"
 LOG_FILE = "example.json"
@@ -44,12 +44,12 @@ def process_log(log_entry, triggers):
             condition_code = compile(trigger["condition"], "<string>", "eval")
             if eval(condition_code, {}, {"log": log_entry}):
                 action_name = trigger["action"]
-                action_func = getattr(log_analysis, action_name, None)
+                action_func = getattr(runbook, action_name, None)
                 if callable(action_func):
                     print(f"[INFO] Trigger matched. Running action: {action_name}")
                     action_func(log_entry)
                 else:
-                    print(f"[ERROR] Action '{action_name}' not found in log_analysis.py.")
+                    print(f"[ERROR] Action '{action_name}' not found in runbook.py.")
         except Exception as e:
             print(f"[ERROR] Failed to process trigger: {e}")
 
