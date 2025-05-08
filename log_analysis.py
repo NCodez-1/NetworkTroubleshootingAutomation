@@ -44,7 +44,7 @@ def netmiko_connection(ip_addr: str) -> BaseConnection:
 def get_hostname(log: str) -> str:
     hostname = log.split(' ')[3]
     #opens a file which contains hostname to IP address mappings
-    content = json_load('devices.json')
+    content = json_load('Devices.json')
     for i in content:
         if hostname in i.values():
             return i['ip_address']
@@ -72,18 +72,20 @@ def send_message(message: str, receiver: str, authorization: str) -> dict:
 def mac_to_ip(log: str) -> str:
     mac = log.split(' ')[-1]
     #opens a file which contains hostname to IP address mappings
-    content = json_load('devices.json')
+    content = json_load('Devices.json')
     for i in content:
-        if mac in i.values():
-            return i['ip_address']
+        if isinstance(i, dict):
+            if mac in i.values():
+                return i.get("ip")
 
 def load_topology() -> dict:
-    content = json_load('devices.json')
+    topology_data = json_load("Devices.json")
     dic = {}
-
-    for device in content:
-        dic[device['hostname']] = device['ip_address']
-
+    for hostname, config in topology_data.items():
+        if isinstance(config, dict) and "host" in config:
+            dic[hostname] = config["host"]
+        else:
+            print(f"Skipping invalid device entry: {hostname}")
     return dic
 
 
@@ -116,7 +118,7 @@ if not ip:
                     hostname = i.split()[0]
                     curr_ip_address = switches[hostname]
 else:
-    content = json_load('devices.json')
+    content = json_load('Devices.json')
     switches = [(device['ip_address'], device['bridge_priority']) for device in content if device["hostname"][0] == "S"]
     for device in switches:
        #creating connection to my VM router in the final version it will look: ssh_connection = netmiko_connection(ip_address)
