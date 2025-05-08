@@ -1,8 +1,16 @@
 import re
 import json
-from netmiko import BaseConnection, ConnectHandler, NetmikoTimeoutException
+from colorama import Fore
+from netmiko import BaseConnection, ConnectHandler, NetmikoAuthenticationException, NetmikoTimeoutException
 from requests_toolbelt import MultipartEncoder
 import requests
+
+##TESTING
+def log_to_console(log):
+    print("[TEST ACTION] log_to_console triggered")
+    print(log)
+
+##TESTING END
 
 #cisco webex room ID and token ID
 ROOMID = "Y2lzY29zcGFyazovL3VybjpURUFNOmV1LWNlbnRyYWwtMV9rL1JPT00vZTBjYzlmMzAtZWRmZC0xMWVmLThhMDQtMDVhN2ZkMjgxODQ5"
@@ -28,8 +36,8 @@ def netmiko_connection(ip_addr: str) -> BaseConnection:
             password = "cisco123!",
             port = 22
         )
-    except NetmikoTimeoutException:
-        print("Could not connect to ip address: %s" % ip_addr)
+    except (NetmikoTimeoutException, NetmikoAuthenticationException) as e:
+        print(f"Could not connect to ip address: {ip_addr} — {e}")
     return ssh_connection
 
 #this funtion retrieves IP address based on the hostname from the log 
@@ -85,6 +93,9 @@ if not ip:
     curr_ip_address = switches['S1']
     while True:
         ssh_connection = netmiko_connection(curr_ip_address)
+        if not ssh_connection:
+            print(Fore.RED + f"Could not connect to device at {curr_ip_address}. Skipping.")
+            break
         stp_info = ssh_connection.send_command("show spanning-tree")
         sp_output = stp_info.split('\n')
         cost = sp_output[4].strip().split()[1]
@@ -110,8 +121,11 @@ else:
     for device in switches:
        #creating connection to my VM router in the final version it will look: ssh_connection = netmiko_connection(ip_address)
         ssh_connection = netmiko_connection(device[0])
+        if not ssh_connection:
+            print(Fore.RED + f"Could not connect to device at {device[0]}. Skipping.")
+            break
         stp_info = ssh_connection.send_command("show spanning-tree")
-        n_bridge = re.search("Bridge.+(\d)").split()[3]
+        n_bridge = re.search(r"Bridge.+(\d)").split()[3]
         if n_bridge != device[1]:
             ssh_connection.send_config_set(["spanning-tree vlan 1 priority {0}".format(device[1])])
             message = "Set STP priority back to {0} on {1}".format(device[1], device[0])

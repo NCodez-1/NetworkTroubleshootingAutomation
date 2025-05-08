@@ -1,8 +1,13 @@
+import subprocess
+import sys
+import os
+import platform
 from openai import api_key
 from pyfiglet import Figlet
 import CiscoFuncs
 from CiscoFuncs import *
 from datetime import datetime
+from log_analysis import json_load
 import time
 from colorama import Fore, Style
 
@@ -20,15 +25,12 @@ from colorama import Fore, Style
 
 CiscoFuncs.load_api_key()
 api_key = CiscoFuncs.get_api_key()
-
-if api_key:
-    print(Fore.GREEN + f"API Key is set to: ${api_key}")
-else:
-    print(Fore.RED + "API Key is not set.")
+log_check_file = "example.json"
 
 def mainMenu():
 
     while True:
+        clear_screen()
 
         f = Figlet(font='slant')
 
@@ -53,6 +55,8 @@ def mainMenu():
         print(Fore.GREEN + " View log file contents            [5]")
         print(Fore.BLUE + "-" * 50)
         print(Fore.GREEN + " AI Menu                           [6]")
+        print(Fore.BLUE + "-" * 50)
+        print(Fore.GREEN + " Log check                         [7]")
         print(Fore.BLUE + "-" * 50)
         print(Fore.GREEN + " Exit                             [99]")
         print(Fore.BLUE + "-" * 50)
@@ -123,17 +127,25 @@ def mainMenu():
         elif option == 6:
             AImenu()
 
+        elif option == 7:
+            log_check_menu()
+
         elif option == 99:
+            clear_screen()
             print(Fore.GREEN + f.renderText("Exiting"))
             quit()
         else:
             print("Choose an option")
 
 
+
 def AImenu():
+    message = ""
+
     while True:
+        clear_screen()
         f = Figlet(font='slant')
-        print(Fore.GREEN + f.renderText("COM 617") + Style.RESET_ALL)
+        print(Fore.GREEN + f.renderText("AI Menu") + Style.RESET_ALL)
 
         print("Cisco Industrial consultancy project for COM617")
         print("This project aims to automatically and remotely troubleshoot Cisco network devices")
@@ -150,26 +162,28 @@ def AImenu():
         print(Fore.BLUE + "-" * 50)
         print(Fore.GREEN + " Remove API Key                     [3]")
         print(Fore.BLUE + "-" * 50)
-        print(Fore.GREEN + " Add rule with AI                   [4]")
+        print(Fore.GREEN + " Add trigger with AI                [4]")
         print(Fore.BLUE + "-" * 50)
-        print(Fore.GREEN + " Back                               [99]")
+        print(Fore.GREEN + " Back                              [99]")
         print(Fore.BLUE + "-" * 50)
+
+        if message:
+            print(Fore.YELLOW + "\n" + message + Style.RESET_ALL)
+            message = ""
 
         try:
             option = int(input(Fore.GREEN + " Choose an option: "))
         except ValueError:
-            print(Fore.RED + "Invalid input. Please enter a valid number.")
+            message = "Invalid input. Please enter a valid number."
             continue
 
-        # Show API Key
         if option == 1:
             key = CiscoFuncs.get_api_key()
             if key:
-                print(Fore.GREEN + f"API Key is set to: {key}")
+                message = f"API Key is set to: {key}"
             else:
-                print(Fore.RED + "API Key is not set.")
+                message = "API Key is not set."
 
-        # Change API Key
         elif option == 2:
             while True:
                 another = input(Fore.GREEN + "Need instructions to change the API Key? 'Y', 'N': ").strip().lower()
@@ -182,34 +196,115 @@ def AImenu():
                 if another in ('y', 'n'):
                     new_key = input(Fore.GREEN + "Enter your new API key: ").strip()
                     CiscoFuncs.set_api_key(new_key)
-                    print(Fore.GREEN + f"API key successfully set to: {CiscoFuncs.get_api_key()}")
+                    message = f"API key successfully set to: {CiscoFuncs.get_api_key()}"
                     break
                 else:
-                    print(Fore.RED + "Invalid option. Please enter 'Y' or 'N'.")
+                    message = "Invalid option. Please enter 'Y' or 'N'."
+                    break
 
-        # Remove API Key
         elif option == 3:
             while True:
                 another = input(Fore.RED + "Sure you want to delete the API Key? 'Y', 'N': ").strip().lower()
                 if another == 'y':
                     CiscoFuncs.set_api_key("")
-                    print(Fore.YELLOW + "API key has been cleared.")
+                    message = "API key has been cleared."
                     break
-                if another == 'n':
-                    print(Fore.YELLOW + "API key was NOT removed.")
+                elif another == 'n':
+                    message = "API key was NOT removed."
                     break
                 else:
-                    print(Fore.RED + "Invalid option. Please enter 'Y' or 'N'.")
+                    message = "Invalid option. Please enter 'Y' or 'N'."
 
-        # Add rule with AI
         elif option == 4:
-            ai_prompt_rule()
+            create_trigger_with_ai()
+            message = "Trigger creation complete."
 
         elif option == 99:
             break
 
         else:
-            print(Fore.RED + "Choose a valid option from the menu.")
+            message = "Choose a valid option from the menu."
+
+def launch_triggerbook():
+    trigger_script = os.path.join(os.path.dirname(__file__), "triggerbook.py")
+
+    if platform.system() == "Windows":
+        python_path = sys.executable
+        command = f'start "" cmd /k "{python_path} \"{trigger_script}\""'
+        subprocess.Popen(command, shell=True)
+    else:
+        subprocess.Popen(["x-terminal-emulator", "-e", f"{sys.executable} '{trigger_script}'"])
+
+    print("[INFO] Trigger engine launched in a separate window.")
+
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def log_check_menu():
+    global log_check_file
+    message = ""
+
+    while True:
+        clear_screen()
+        f = Figlet(font='slant')
+        print(Fore.GREEN + f.renderText("Log Check") + Style.RESET_ALL)
+
+        print(Fore.BLUE + "-" * 50)
+        print(Fore.GREEN + " Log Check Menu")
+        print(Fore.BLUE + "-" * 50)
+        print(Fore.GREEN + f" Current log file: {log_check_file}")
+        print(Fore.BLUE + "-" * 50)
+        print(Fore.GREEN + " Scan entire log file              [1]")
+        print(Fore.BLUE + "-" * 50)
+        print(Fore.GREEN + " Watch for new entries             [2]")
+        print(Fore.BLUE + "-" * 50)
+        print(Fore.GREEN + " Change log file to check          [3]")
+        print(Fore.BLUE + "-" * 50)
+        print(Fore.GREEN + " Back                             [99]")
+        print(Fore.BLUE + "-" * 50)
+
+        if message:
+            print(Fore.YELLOW + "\n" + message + Style.RESET_ALL)
+            message = ""
+
+        try:
+            option = int(input(Fore.GREEN + " Choose an option: "))
+        except ValueError:
+            message = "Invalid input. Please enter a number."
+            continue
+
+        if option == 1:
+            launch_log_scan_window("scan", log_check_file)
+            message = "Full scan launched in a separate window."
+
+        elif option == 2:
+            launch_log_scan_window("watch", log_check_file)
+            message = "Watch mode launched in a separate window."
+
+        elif option == 3:
+            user_input = input("Enter new filename (e.g., logs or logs.json): ").strip()
+            if not user_input.endswith(".json"):
+                user_input += ".json"
+            if os.path.exists(user_input):
+                log_check_file = user_input
+                message = f"Log source changed to {log_check_file}"
+            else:
+                message = f"File '{user_input}' not found."
+
+        elif option == 99:
+            break
+        else:
+            message = "Choose a valid option."
+
+def launch_log_scan_window(mode, file):
+    script = os.path.abspath(os.path.join(os.path.dirname(__file__), "log_runner.py"))
+    python_path = sys.executable
+
+    if platform.system() == "Windows":
+        command = f'start "" cmd /k "{python_path} \"{script}\" \"{mode}\" \"{file}\""'
+        subprocess.Popen(command, shell=True)
+    else:
+        subprocess.Popen(["x-terminal-emulator", "-e", f'{python_path} "{script}" "{mode}" "{file}"'])
 
 if __name__ == "__main__":
     mainMenu()

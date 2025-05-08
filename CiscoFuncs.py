@@ -1,4 +1,5 @@
 from collections import deque
+import inspect
 from math import ceil
 import json
 from netmiko import ConnectHandler
@@ -9,6 +10,8 @@ import structlog
 import logging
 import os
 import openai
+
+import log_analysis
 
 api_key = ""
 API_KEY_FILE = "api_key.txt"
@@ -31,19 +34,22 @@ def set_api_key(new_key):
 def get_api_key():
     return api_key
 
-def ai_prompt_rule_with_action():
+def create_trigger_with_ai():
+    import openai
+    import re
+
     base_url = "https://api.aimlapi.com/v1"
     model = "gpt-4o"
 
-    client = openai.OpenAI(api_key=CiscoFuncs.get_api_key(), base_url=base_url)
+    client = openai.OpenAI(api_key=get_api_key(), base_url=base_url)
 
-    user_input = input("Describe the rule you want to create: ")
+    user_input = input("Describe the trigger you want to create: ")
 
     full_prompt = f"""
-        You are an AI assistant that generates Python log filtering rules.
+        You are an AI assistant that generates Python log filtering trigger.
 
         Only respond with a single line of Python code in the following format:
-        rulebook.add_rule(lambda log: ..., log_analysis.FUNCTION_NAME)
+        "log.get('packet_loss') and int(log['packet_loss'].replace('%', '')) > 10",
 
         Do not include explanations, formatting, or any other content.
 
@@ -60,8 +66,8 @@ def ai_prompt_rule_with_action():
         "asn": 65001
         }}
 
-    Respond to this user description:
-    \"{user_input}\"
+        Respond to this user description:
+        \"{user_input}\"
     """
 
     try:
@@ -69,62 +75,48 @@ def ai_prompt_rule_with_action():
             model=model,
             messages=[{"role": "user", "content": full_prompt}],
             temperature=0.2,
-            max_tokens=150,
+            max_tokens=100,
         )
 
-        ai_rule = response.choices[0].message.content.strip()
+        raw_condition = response.choices[0].message.content.strip()
+        clean_condition = re.sub(r"```(?:python)?\n?([\s\S]+?)\n?```", r"\1", raw_condition).strip()
+        condition = clean_condition
+        print("\nAI-generated condition:")
+        print(f"    {condition}")
 
-        print("\nCopy-paste this rule into your trigger list:\n")
-        print(ai_rule)
+        print("\nAvailable action functions from log_analysis.py:")
+        actions = [
+            name for name, func in inspect.getmembers(log_analysis, inspect.isfunction)
+            if not name.startswith("_")
+        ]
+        for i, action in enumerate(actions, 1):
+            print(f"  [{i}] {action}")
 
-    except Exception as e:
-        print(f"Error communicating with AI API: {e}")
+        while True:
+            try:
+                selection = int(input("Choose an action by number: "))
+                if 1 <= selection <= len(actions):
+                    action_name = actions[selection - 1]
+                    break
+                else:
+                    print("Invalid choice.")
+            except ValueError:
+                print("Please enter a valid number.")
 
-def ai_prompt_rule():
-    base_url = "https://api.aimlapi.com/v1"
-    model = "gpt-4o"
+        trigger_entry = {"condition": condition, "action": action_name}
+        try:
+            with open("trigger.json", "r") as f:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            data = []
 
-    client = openai.OpenAI(api_key=api_key, base_url=base_url)
+        data.append(trigger_entry)
 
-    user_input = input("Enter your Rule: ")
+        with open("trigger.json", "w") as f:
+            json.dump(data, f, indent=4)
 
-    full_prompt = """
-        {
-            "instructions": "You are an AI assistant that generates Python log filtering rules. You must ONLY output a single Python line in this format:\n\nrulebook.add_rule(lambda log: ...)\n\nUse the user's request to build the rule. Do NOT include explanations, summaries, JSON, or anything else. Just return the Python line that fulfills the request below.",
+        print(f"\nTrigger saved! Condition will trigger '{action_name}'.")
 
-
-
-            "example_log": {
-                "timestamp": "2025-04-25T09:20:11Z",
-                "device_name": "edge-router-02",
-                "severity": "CRITICAL",
-                "event": "BGP_PEER_DOWN",
-                "status": "down",
-                "message": "BGP peer 192.168.200.1 on ASN 65001 went down",
-                "peer_ip": "192.168.200.1",
-                "asn": 65001
-            },
-
-            "example_rule": {
-                "rule_response": "rulebook.add_rule(lambda log: log.get('severity') == 'CRITICAL')"
-            },
-
-            "user_request": {
-                "description": "{user_input}"
-            }
-        }
-        """
-    try:
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "user", "content": full_prompt}
-            ],
-            temperature=0.7,
-            max_tokens=256,
-        )
-
-        print("AI Response:", response.choices[0].message.content)
     except Exception as e:
         print(f"Error communicating with AI API: {e}")
 

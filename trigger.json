@@ -1,0 +1,22 @@
+[
+    {
+        "condition": "log.get('packet_loss') and int(log['packet_loss'].replace('%', '')) > 15",
+        "action": "send_message"
+    },
+    {
+        "condition": "log['severity'] == 'CRITICAL'",
+        "action": "send_message"
+    },
+    {
+        "condition": "log.get('packet_loss') and int(log['packet_loss'].replace('%', '')) > 10",
+        "action": "log_to_console"
+    },
+    {
+        "condition": "log.get('packet_loss') and int(log['packet_loss'].replace('%', '')) > 40",
+        "action": "send_message"
+    },
+    {
+        "condition": "log.get('severity') == 'CRITICAL'",
+        "action": "log_to_console"
+    }
+]

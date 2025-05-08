@@ -68,5 +68,47 @@
       "packet_loss": "2%",
       "message": "Latency spike detected to internal server VLAN",
       "severity": "NOTICE"
+    },
+    {
+      "timestamp": "2025-04-25T10:47:33Z",
+      "device_name": "core-router-01",
+      "interface": "GigabitEthernet0/1",
+      "ip_address": "10.0.0.1",
+      "status": "down",
+      "method": "static",
+      "protocol": "EIGRP",
+      "event_type": "interface_down",
+      "latency_ms": null,
+      "packet_loss": "100%",
+      "message": "Interface down — potential cable or hardware failure",
+      "severity": "CRITICAL"
+    },
+    {
+      "timestamp": "2025-05-01T10:47:53Z",
+      "device_name": "core-router-01",
+      "interface": "GigabitEthernet0/1",
+      "ip_address": "10.0.0.1",
+      "status": "down",
+      "method": "static",
+      "protocol": "EIGRP",
+      "event_type": "interface_down",
+      "latency_ms": null,
+      "packet_loss": "100%",
+      "message": "Interface down — potential cable or hardware failure",
+      "severity": "CRITICAL"
+    },
+    {
+    "timestamp": "2025-05-20T10:49:14Z",
+    "device_name": "dist-switch-03",
+    "interface": "GigabitEthernet1/0/10",
+    "ip_address": "10.0.30.5",
+    "status": "up",
+    "method": "static",
+    "protocol": "OSPF",
+    "event_type": "neighbor_down",
+    "latency_ms": 3,
+    "packet_loss": "95%",
+    "message": "OSPF neighbor down — possible routing inconsistency",
+    "severity": "ERROR"
     }
   ]  
