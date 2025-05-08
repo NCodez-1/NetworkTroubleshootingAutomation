@@ -1,26 +1,26 @@
+import os
 import sys
 import time
 import json
 
-from colorama import Fore
-import log_analysis
+from colorama import Fore, Style, init
+import runbook
+import triggerbook
 
-def json_load(file):
-    with open(file, 'r') as f:
+init(convert=True, autoreset=True)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def json_load(filename):
+    path = os.path.join(BASE_DIR, filename)
+    with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 def run_scan(log_file):
     logs = json_load(log_file)
     triggers = json_load("trigger.json")
     for entry in logs:
-        for trig in triggers:
-            try:
-                if eval(compile(trig["condition"], "<string>", "eval"), {}, {"log": entry}):
-                    action = getattr(log_analysis, trig["action"], None)
-                    if callable(action):
-                        action(entry)
-            except Exception as e:
-                print(f"[ERROR] Trigger failed: {e}")
+        triggerbook.process_log(entry, triggers)
     print(Fore.GREEN + "\nFull scan completed.")
 
 def run_watch(log_file):
@@ -33,16 +33,8 @@ def run_watch(log_file):
         if len(new_logs) > old_len:
             new_entry = new_logs[-1]
             triggers = json_load("trigger.json")
-            for trig in triggers:
-                try:
-                    if eval(compile(trig["condition"], "<string>", "eval"), {}, {"log": new_entry}):
-                        action = getattr(log_analysis, trig["action"], None)
-                        if callable(action):
-                            action(new_entry)
-                except Exception as e:
-                    print(f"[ERROR] Trigger failed: {e}")
+            triggerbook.process_log(new_entry, triggers)
             old_len = len(new_logs)
-            print("[INFO] New entry processed.\n")
 
 if __name__ == "__main__":
     mode = sys.argv[1]

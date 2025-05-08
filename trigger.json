@@ -6,5 +6,9 @@
     {
         "condition": "log['severity'] == 'CRITICAL'",
         "action": "send_message"
+    },
+    {
+        "condition": "log.get('status') == 'down'",
+        "action": "log_to_console"
     }
 ]

@@ -10,7 +10,7 @@ from datetime import datetime
 from runbook import json_load
 import time
 import threading
-from colorama import Fore, Style
+from colorama import Fore, Style, init
 
 """ This is a protoype of a program which can remotley access network devices and run troublehshooting
     commands, it is currently just the set up for data collection adn example of what can be done,
@@ -23,7 +23,7 @@ from colorama import Fore, Style
     Once the network topology is set up this can be scritped to run in the back ground checking certain commands
     and returning errors to the visual dashboard and then further intergrated with playbooks that work to fix 
     issues if can be done remotley """
-
+init(convert=True, autoreset=True)
 CiscoFuncs.load_api_key()
 api_key = CiscoFuncs.get_api_key()
 log_check_file = "example.json"
@@ -309,7 +309,7 @@ def launch_log_scan_window(mode, file):
     python_path = sys.executable
 
     if platform.system() == "Windows":
-        command = f'start "" cmd /k "{python_path} \"{script}\" \"{mode}\" \"{file}\""'
+        command = f'start wt powershell -NoExit -Command "{python_path} \'{script}\' \'{mode}\' \'{file}\'"'
         subprocess.Popen(command, shell=True)
     else:
         subprocess.Popen(["x-terminal-emulator", "-e", f'{python_path} "{script}" "{mode}" "{file}"'])

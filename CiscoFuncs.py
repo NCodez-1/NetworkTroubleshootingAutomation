@@ -89,10 +89,7 @@ def create_trigger_with_ai():
         print(f"    {condition}")
 
         print("\nAvailable action functions from runbook.py:")
-        actions = [
-            name for name, func in inspect.getmembers(runbook, inspect.isfunction)
-            if not name.startswith("_")
-        ]
+        actions = list(runbook.events_and_actions.keys())
         for i, action in enumerate(actions, 1):
             print(f"  [{i}] {action}")
 
@@ -100,7 +97,8 @@ def create_trigger_with_ai():
             try:
                 selection = int(input("Choose an action by number: "))
                 if 1 <= selection <= len(actions):
-                    action_name = actions[selection - 1]
+                    selected_key = actions[selection - 1]
+                    action_name = runbook.events_and_actions[selected_key].__name__
                     break
                 else:
                     print("Invalid choice.")
