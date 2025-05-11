@@ -6,6 +6,7 @@ import requests
 
 ROOMID = "Y2lzY29zcGFyazovL3VybjpURUFNOmV1LWNlbnRyYWwtMV9rL1JPT00vZTBjYzlmMzAtZWRmZC0xMWVmLThhMDQtMDVhN2ZkMjgxODQ5"
 TOKEN = "Bearer MTY3MDhmYTMtOWUyYS00MzJmLTkwZDAtYTFjZTFkMzUwM2MzNjdmNjE1ZTEtYzBk_PE93_bde28e3d-21ec-426e-b7f1-1c7280ca363f"
+DEVICES = "devices.json"
 
 ##TESTING
 def log_to_console(log):
@@ -34,20 +35,13 @@ def netmiko_connection(ip_address: str) -> BaseConnection:
         print("Could not connect to ip address: %s" % ip_address)
     return ssh_connection
 
-#retrieve IP address based on the hostname from the log 
-def get_hostname(log: str) -> str:
-    hostname = log.split(' ')[3]
-    content = json_load('devices.json')
-    for i in content:
-        if hostname in i.values():
-            return i['ip_address']
-
 #retrieve interface from the log message
-def get_interface(log: str) -> str:
-    x = re.findall("Interface.+[1-24]", log)
+def get_interface(log: dict) -> str:
+    x = re.findall("Interface.+[1-24]", log["message"])
     if x:
-        interface = ''.join(x).strip().lower()
-    return interface
+        return ''.join(x).strip().lower()
+    else:
+        return None    
 
 #send message to cisco webex
 def send_message(message: str, receiver: str, authorization: str) -> dict:
@@ -63,27 +57,34 @@ def send_message(message: str, receiver: str, authorization: str) -> dict:
     return response.text
 
 #retrieve IP address based on the mac address from the log 
-def mac_to_ip(log: str) -> str:
-    mac = log.split(' ')[-1]
+def mac_to_ip(log: dict) -> str:
+    x = log["message"].split(' ')[-1]
     #opens a file which contains hostname to IP address mappings
-    content = json_load('devices.json')
+    mac = x[x.index(':')+1:]
+    content = json_load(DEVICES)
     for i in content:
         if mac in i.values():
-            return (i['ip_address'], mac)
-        else:
-            return None
+            return (i['ip'], mac)
+    return None
 
 def load_topology() -> dict:
-    content = json_load('devices.json')
+    content = json_load(DEVICES)
     dic = {}
 
     for device in content:
-        dic[device['hostname']] = device['ip_address']
+        dic[device] = content[device]["ip"]
 
     return dic
 
-def shut_int(log):
-    ip_address = get_hostname(log)
+def detect_ntp_issues(log: dict) -> bool:
+    log_message = ["Authentication failed", "stratum too high", "time offset unacceptable", "unreachable"]
+    for message in log_message:
+        if message in log["message"]:
+            return True
+    return False
+
+def shut_int(log: dict):
+    ip_address = log["ip_address"]
     interface = get_interface(log)
     #creating connection to a device
     ssh_connection = netmiko_connection(ip_address)
@@ -100,9 +101,10 @@ def shut_int(log):
         send_message(error_message, ROOMID, TOKEN)
     else:
         print('Shuting down "%s".' % (interface))
+    ssh_connection.disconnect()
 
-def up_int(log):
-    ip_address = get_hostname(log)
+def up_int(log: dict):
+    ip_address = log["ip_address"]
     interface = get_interface(log)
     #creating connection to a device
     ssh_connection = netmiko_connection(ip_address)
@@ -119,6 +121,7 @@ def up_int(log):
         send_message(error_message, ROOMID, TOKEN)
     else:
         print('Turning up  "%s".' % (interface))
+    ssh_connection.disconnect()
 
 def STP_config(log):
     ip = mac_to_ip(log)
@@ -127,7 +130,8 @@ def STP_config(log):
         #create hostname to IP mapping
         switches = load_topology()
         #get the IP address of S1
-        curr_ip_address = switches['S1']
+        curr_ip_address = switches['Switch1']
+        hostname = "Switch1"
         while True:
             ssh_connection = netmiko_connection(curr_ip_address)
             stp_info = ssh_connection.send_command("show spanning-tree")
@@ -162,9 +166,9 @@ def STP_config(log):
                         hostname = i.split()[0]
                         curr_ip_address = switches[hostname]
     else:
-        content = json_load('devices.json')
+        content = json_load(DEVICES)
         #create a list of the IP adressess and bridge priority of the switches
-        switches = [(device['ip_address'], device['bridge_priority']) for device in content if device["hostname"][0] == "S"]
+        switches = [(content[device]['ip'], content[device]['bridge_priority']) for device in content if "Switch" in device]
         for device in switches:
         #creating connection to my VM router in the final version it will look: ssh_connection = netmiko_connection(ip_address)
             ssh_connection = netmiko_connection(device[0])
@@ -174,16 +178,47 @@ def STP_config(log):
                 ssh_connection.send_config_set(["spanning-tree vlan 1 priority {0}".format(device[1])])
                 message = "Set STP priority back to {0} on {1}".format(device[1], device[0])
                 send_message(message, ROOMID, TOKEN)
+    ssh_connection.disconnect()
 
-def NTP(host, port):
-    # send an action here to the library
-    print('Reseting the time on a NTP server "%s:%s".' % (host, port))
+def NTP(log: dict):
+    if detect_ntp_issues(log["message"]):
+        content = json_load(DEVICES)
+        ntp_server = next((content[device]["ip"] for device in content if device == "Router1"), None)
+
+        ssh_connection = netmiko_connection(log["ip_address"])
+        if log["ip_address"] == ntp_server:
+            ssh_connection.enable()
+            ssh_connection.send_command("ntp master 3")
+            ssh_connection.exit_config_mode()
+            check = ssh_connection.send_command("show ntp status | include ntp")
+            if "master 3" in check:
+                message = "Router1 is set to NTP master"
+                send_message(message, ROOMID, TOKEN)
+            else:
+                message = "Could not set NTP master on Router1"
+                send_message(message, ROOMID, TOKEN)
+        else:
+            ssh_connection.enable()
+            untrusted_server = re.findall("(?:[0-9]{1,3}\.){3}[0-9]{1,3}", log["message"])
+            ssh_connection.send_config_set(['no ntp server {}'.format(untrusted_server[0]), 'ntp server {}'.format(ntp_server)])
+            check = ssh_connection.send_command("show ntp status | include ntp")
+            if ntp_server in check:
+                message = "NTP server is set to {}".format(ntp_server)
+                send_message(message, ROOMID, TOKEN)
+            else:
+                message = "Problem with setting a NTP server on {} device".format(log["ip_address"])
+                send_message(message, ROOMID, TOKEN)
+
+    ssh_connection.disconnect()
 
 
 events_and_actions = {
     'state to up' : shut_int,
     'state to down': up_int,
     'Root bridge' : STP_config,
-    'synchronized to NTP' : NTP,
+    'Authentication failed' : NTP,
+    'stratum too high' : NTP,
+    'time offset unacceptable' : NTP,
+    'unreachable' : NTP,
     'testing' : log_to_console
 }

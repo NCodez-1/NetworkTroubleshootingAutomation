@@ -1,25 +1,43 @@
 {
     "Device1": {
         "device_type": "cisco_ios",
-        "ip": "192.168.0.100",
+        "ip": "192.168.0.10",
         "username": "admin",
         "password": "cisco",
         "port": "22",
         "secret": "cisco",
         "mac_address": "abcd:efgh:ijkl:mnop"
     },
-    "router1": {
+    "Router1": {
         "device_type": "cisco_ios",
-        "ip": "192.168.0.101",
+        "ip": "192.168.0.1",
         "username": "admin",
         "password": "cisco",
         "port": "22",
         "secret": "cisco",
         "mac_address": "iiii:jjjj:dddd:ssss"
     },
-    "switch2": {
+    "Switch1": {
         "device_type": "cisco_ios",
-        "ip": "192.168.0.102",
+        "ip": "192.168.0.2",
+        "username": "admin",
+        "password": "cisco",
+        "port": "22",
+        "secret": "cisco",
+        "bridge_priority": "4096"
+    },
+    "Switch2": {
+        "device_type": "cisco_ios",
+        "ip": "192.168.0.3",
+        "username": "admin",
+        "password": "cisco",
+        "port": "22",
+        "secret": "cisco",
+        "bridge_priority": "32768"
+    },
+    "Switch3": {
+        "device_type": "cisco_ios",
+        "ip": "192.168.0.4",
         "username": "admin",
         "password": "cisco",
         "port": "22",
